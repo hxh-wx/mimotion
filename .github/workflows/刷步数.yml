@@ -2,22 +2,44 @@ name: 刷步数
 
 on:
   schedule:
-    - cron: '0 0,1,8,9 * * *'
-  workflow_dispatch:
+    - cron: '0 0,1,8,9 * * *'   # UTC时间 0,1,8,9点（北京时间 8,9,16,17点）
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
       - name: 设置 Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          
       - name: 安装依赖
         run: |
           pip install requests
           pip install pycryptodome
+          
+      - name: 🔍 侦探模式 - 查找 main.py 到底在哪
+        run: |
+          echo "===== 当前目录 ====="
+          pwd
+          echo ""
+          echo "===== 根目录下有什么文件 ====="
+          ls -la
+          echo ""
+          echo "===== 搜索 main.py 文件 ====="
+          find . -name "main.py" -type f | while read f; do
+            echo "✅ 找到 main.py 在: $f"
+          done
+          echo ""
+          echo "===== 如果没找到，搜索所有 .py 文件 ====="
+          find . -name "*.py" | head -20
+          echo ""
+          echo "===== 检查 util 文件夹 ====="
+          ls -la util/ 2>/dev/null || echo "❌ util 文件夹不存在"
+          
       - name: 运行刷步数脚本
         env:
           CONFIG: ${{ secrets.CONFIG }}
