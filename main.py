@@ -21,16 +21,82 @@ def get_int_value_default(_config: dict, _key, default):
     return int(_config.get(_key))
 
 
-# 获取当前时间对应的最大和最小步数
+# 获取当前时间对应的最大和最小步数（早晚双高峰版）
 def get_min_max_by_time(hour=None, minute=None):
     if hour is None:
         hour = time_bj.hour
     if minute is None:
         minute = time_bj.minute
-    time_rate = min((hour * 60 + minute) / (22 * 60), 1)
-    min_step = get_int_value_default(config, 'MIN_STEP', 18000)
-    max_step = get_int_value_default(config, 'MAX_STEP', 25000)
-    return int(time_rate * min_step), int(time_rate * max_step)
+    
+    # 计算当前时间在一天中的进度（分钟制）
+    current_minutes = hour * 60 + minute
+    
+    # 运动时间区间：7:00 - 19:00
+    if current_minutes < 7 * 60:  # 7:00之前
+        min_step = 0
+        max_step = 200
+        print(f"凌晨时段（7点前），步数范围: {min_step}~{max_step}")
+    
+    # 早高峰 7:30 - 9:30
+    elif current_minutes < 7 * 60 + 30:  # 7:00 - 7:29
+        # 7点开始活动，逐步增加
+        progress = (current_minutes - 7 * 60) / 30  # 0.0 - 0.99
+        min_step = int(500 + progress * 2000)
+        max_step = min_step + 200
+        print(f"早高峰准备期，步数范围: {min_step}~{max_step}")
+    elif current_minutes < 9 * 60 + 30:  # 7:30 - 9:29
+        # 早高峰核心时段：快速从2500涨到5500
+        progress = (current_minutes - (7 * 60 + 30)) / (2 * 60)  # 2小时内
+        min_step = int(2500 + progress * 3000)
+        max_step = min_step + 300
+        print(f"早高峰时段，步数范围: {min_step}~{max_step}")
+    elif current_minutes < 9 * 60 + 31:  # 9:30整
+        # 早高峰结束时的峰值
+        min_step = 5500
+        max_step = 6000
+        print(f"早高峰结束，步数范围: {min_step}~{max_step}")
+    
+    # 日间平稳期 9:30 - 15:00
+    elif current_minutes < 15 * 60:  # 9:30 - 14:59
+        # 缓慢增长：从5500逐渐到6500
+        progress = (current_minutes - (9 * 60 + 30)) / (5.5 * 60)  # 5.5小时
+        min_step = int(5500 + progress * 1000)
+        max_step = min_step + 400
+        print(f"日间平稳期，步数范围: {min_step}~{max_step}")
+    
+    # 下午小高峰 15:00 - 17:00
+    elif current_minutes < 15 * 60 + 1:  # 15:00整
+        # 下午小高峰起点
+        min_step = 6500
+        max_step = 7000
+        print(f"下午小高峰起点，步数范围: {min_step}~{max_step}")
+    elif current_minutes < 17 * 60:  # 15:00 - 16:59
+        # 下午小高峰：从6500快速涨到9000
+        progress = (current_minutes - 15 * 60) / (2 * 60)  # 2小时内
+        min_step = int(6500 + progress * 2500)
+        max_step = min_step + 300
+        print(f"下午小高峰时段，步数范围: {min_step}~{max_step}")
+    elif current_minutes < 17 * 60 + 1:  # 17:00整
+        # 下午小高峰结束
+        min_step = 9000
+        max_step = 9500
+        print(f"下午小高峰结束，步数范围: {min_step}~{max_step}")
+    
+    # 傍晚平稳期 17:00 - 19:00
+    elif current_minutes < 19 * 60:  # 17:00 - 18:59
+        # 缓慢增长到最终峰值
+        progress = (current_minutes - 17 * 60) / (2 * 60)  # 2小时内
+        min_step = int(9000 + progress * 4000)
+        max_step = min_step + 500
+        print(f"傍晚平稳期，步数范围: {min_step}~{max_step}")
+    
+    else:  # 19:00之后
+        # 19点后保持峰值
+        min_step = 13000
+        max_step = 14000
+        print(f"晚间时段（19点后），步数范围: {min_step}~{max_step}")
+    
+    return min_step, max_step
 
 
 # 虚拟ip地址
