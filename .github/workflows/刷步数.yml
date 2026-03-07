@@ -20,25 +20,7 @@ jobs:
         run: |
           pip install requests
           pip install pycryptodome
-          
-      - name: 🔍 侦探模式 - 查找 main.py 到底在哪
-        run: |
-          echo "===== 当前目录 ====="
-          pwd
-          echo ""
-          echo "===== 根目录下有什么文件 ====="
-          ls -la
-          echo ""
-          echo "===== 搜索 main.py 文件 ====="
-          find . -name "main.py" -type f | while read f; do
-            echo "✅ 找到 main.py 在: $f"
-          done
-          echo ""
-          echo "===== 如果没找到，搜索所有 .py 文件 ====="
-          find . -name "*.py" | head -20
-          echo ""
-          echo "===== 检查 util 文件夹 ====="
-          ls -la util/ 2>/dev/null || echo "❌ util 文件夹不存在"
+          pip install pytz
           
       - name: 运行刷步数脚本
         env:
