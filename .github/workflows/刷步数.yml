@@ -2,8 +2,8 @@ name: 刷步数
 
 on:
   schedule:
-    - cron: '0 0,1,8,9 * * *'   # UTC时间 0,1,8,9点（北京时间 8,9,16,17点）
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 0,1,8,9 * * *'
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -16,11 +16,17 @@ jobs:
         with:
           python-version: '3.10'
           
-      - name: 安装依赖
+      - name: 安装依赖（带详细输出）
         run: |
+          pip install --upgrade pip
+          echo "开始安装 requests..."
           pip install requests
+          echo "开始安装 pycryptodome..."
           pip install pycryptodome
+          echo "开始安装 pytz..."
           pip install pytz
+          echo "查看已安装的包："
+          pip list
           
       - name: 运行刷步数脚本
         env:
