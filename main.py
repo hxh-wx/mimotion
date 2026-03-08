@@ -152,6 +152,7 @@ class MiMotionRunner:
     def __init__(self, _user, _passwd):
         self.user_id = None
         self.device_id = str(uuid.uuid4())
+        self._device_bound = False  # 标记是否已尝试绑定设备
         user = str(_user)
         password = str(_passwd)
         self.invalid = False
@@ -247,6 +248,14 @@ class MiMotionRunner:
         app_token = self.login()
         if app_token is None:
             return "登陆失败！", False
+
+        # 尝试绑定虚拟设备（新账号第一次必须调用）
+        if not self._device_bound:
+            bind_success, bind_msg = zeppHelper.bind_virtual_device(app_token, self.user_id, self.device_id)
+            self.log_str += f"虚拟设备绑定结果: {bind_msg}\n"
+            self._device_bound = True
+            # 绑定后等待一下，让服务器处理
+            time.sleep(2)
 
         step = str(random.randint(min_step, max_step))
         self.log_str += f"已设置为随机步数范围({min_step}~{max_step}) 随机值:{step}\n"
